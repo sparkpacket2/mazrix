@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mazrix</title>
+  <style>
+    html, body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+      height: 100%;
+    }
+    #grid {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+    }
+    .cell {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+    }
+    .wall { background: #000; }
+    .air { background: #fff; }
+    .start { background: green; }
+    .end { background: red; }
+    .player { background: blue; }
+    .hidden { background: #000 !important; }
+  </style>
+</head>
+<body>
+
+<div id="grid"></div>
+
+<script>
+  const gridElement = document.getElementById('grid');
+  let gridSize = 30;
+  let cells = [];
+  let players = [];
+  let playing = false;
+  let flashlightMode = 0; // 0: fullbright, 1: darkness, 2: flashlight
+  const flashlightRadius = 5;
+
+  function createGrid(size) {
+    gridSize = size;
+    gridElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    gridElement.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+    gridElement.innerHTML = '';
+    cells = [];
+    for (let y = 0; y < size; y++) {
+      const row = [];
+      for (let x = 0; x < size; x++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell', 'wall');
+        cell.dataset.state = 'wall';
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        cell.addEventListener('click', () => cycleTile(cell));
+        gridElement.appendChild(cell);
+        row.push(cell);
+      }
+      cells.push(row);
+    }
+  }
+
+  function cycleTile(cell) {
+    const state = cell.dataset.state;
+    cell.classList.remove(state);
+    if (state === 'wall') {
+      cell.dataset.state = 'air';
+    } else if (state === 'air') {
+      cell.dataset.state = 'start';
+    } else if (state === 'start') {
+      cell.dataset.state = 'end';
+    } else {
+      cell.dataset.state = 'wall';
+    }
+    cell.classList.add(cell.dataset.state);
+  }
+
+  function startGame() {
+    players = [];
+    for (let y = 0; y < gridSize; y++) {
+      for (let x = 0; x < gridSize; x++) {
+        const cell = cells[y][x];
+        if (cell.dataset.state === 'start') {
+          players.push({x, y});
+        }
+        cell.classList.remove('player');
+      }
+    }
+    if (players.length === 0) {
+      alert("No start tile!");
+      return;
+    }
+    playing = true;
+    updatePlayerVisuals();
+    updateLighting();
+  }
+
+  function stopGame() {
+    playing = false;
+  }
+
+  function updatePlayerVisuals() {
+    for (let row of cells) {
+      for (let cell of row) {
+        cell.classList.remove('player');
+      }
+    }
+    for (let p of players) {
+      cells[p.y][p.x].classList.add('player');
+    }
+  }
+
+  function movePlayers(dx, dy) {
+    if (!playing) return;
+    players = players.map(p => {
+      const nx = p.x + dx;
+      const ny = p.y + dy;
+      if (nx >= 0 && ny >= 0 && nx < gridSize && ny < gridSize) {
+        const next = cells[ny][nx];
+        if (next.dataset.state !== 'wall' && !players.some(o => o.x === nx && o.y === ny)) {
+          return {x: nx, y: ny};
+        }
+      }
+      return p;
+    });
+    updatePlayerVisuals();
+    updateLighting();
+    checkWin();
+  }
+
+  function checkWin() {
+    const allAtEnd = players.every(p => cells[p.y][p.x].dataset.state === 'end');
+    if (allAtEnd && players.length > 0) {
+      alert("You win!");
+      stopGame();
+    }
+  }
+
+  function updateLighting() {
+    for (let y = 0; y < gridSize; y++) {
+      for (let x = 0; x < gridSize; x++) {
+        const cell = cells[y][x];
+        cell.classList.remove('hidden');
+      }
+    }
+
+    if (flashlightMode === 0) return; // Fullbright
+    if (flashlightMode === 1) {
+      for (let row of cells) {
+        for (let cell of row) {
+          if (cell.dataset.state === 'air') cell.classList.add('hidden');
+        }
+      }
+      return;
+    }
+
+    // Mode 2: flashlight effect
+    for (let y = 0; y < gridSize; y++) {
+      for (let x = 0; x < gridSize; x++) {
+        let visible = false;
+        for (let p of players) {
+          const dx = x - p.x;
+          const dy = y - p.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist <= flashlightRadius && cells[y][x].dataset.state === 'air') {
+            visible = true;
+            break;
+          }
+        }
+        if (!visible) cells[y][x].classList.add('hidden');
+      }
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      playing ? stopGame() : startGame();
+    }
+    if (e.key === 'ArrowUp') movePlayers(0, -1);
+    if (e.key === 'ArrowDown') movePlayers(0, 1);
+    if (e.key === 'ArrowLeft') movePlayers(-1, 0);
+    if (e.key === 'ArrowRight') movePlayers(1, 0);
+    if (e.key.toLowerCase() === 'f') {
+      flashlightMode = (flashlightMode + 1) % 3;
+      updateLighting();
+    }
+  });
+
+  createGrid(gridSize);
+</script>
+
+</body>
+</html>
