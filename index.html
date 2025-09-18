@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mazrix - Main Menu</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: black;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    .menu {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 1.5em;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+    }
+
+    .menu button {
+      display: block;
+      width: 200px;
+      margin: 10px auto;
+      padding: 15px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 8px;
+      background: #111;
+      color: #0ff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .menu button:hover {
+      background: #0ff;
+      color: black;
+      box-shadow: 0 0 15px #0ff;
+    }
+
+    footer {
+      margin-top: 2em;
+      font-size: 0.8em;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="menu">
+    <h1>Mazrix</h1>
+    <button onclick="startGame()">Play</button>
+    <button onclick="showInstructions()">Instructions</button>
+    <button onclick="showCredits()">Credits</button>
+
+    <footer>© 2025 sparkpacket</footer>
+  </div>
+
+  <script>
+    function startGame() {
+      window.location.href = "mazrix.html";
+    }
+
+    function showInstructions() {
+      alert("Controls:\n- Arrow Keys: Move\n- Tab: Start/Stop game\n- F: Toggle flashlight mode");
+    }
+
+    function showCredits() {
+      alert("Mazrix created by sparkpacket.");
+    }
+  </script>
+
+</body>
+</html>
